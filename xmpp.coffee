@@ -17,6 +17,7 @@ module.exports = (env) ->
       user = @config.user
       password = @config.password
       @adminUser = @config.adminId
+      @defaultUser = @config.defaultId
       env.logger.debug ("xmpp: user= #{user}")
 
       xmppService = new Client ({
@@ -160,22 +161,22 @@ module.exports = (env) ->
 
     parseAction: (input, context) =>
 
-      defaultTitle = @config.tojid
-      defaultMessage = @config.message
+      defaultId = @config.defaultId
+      defaultMessage = "Test message! - Please define a valid message in your rule"
 
       strToTokens = (str) => ["\"#{str}\""]
 
-      tojidTokens = strToTokens defaultTitle
+      tojidTokens = strToTokens defaultId
       messageTokens = strToTokens defaultMessage
 
-      setTitle = (m, tokens) => tojidTokens = tokens
+      setjid = (m, tokens) => tojidTokens = tokens
       setMessage = (m, tokens) => messageTokens = tokens
 
       m = M(input, context)
         .match('send ', optional: yes)
         .match(['push','chat','notification'])
 
-      next = m.match(' tojid:').matchStringWithVars(setTitle)
+      next = m.match(' tojid:').matchStringWithVars(setjid)
       if next.hadMatch() then m = next
 
       next = m.match(' message:').matchStringWithVars(setMessage)
