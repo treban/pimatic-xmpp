@@ -17,8 +17,7 @@ module.exports = {
       required: yes
     defaultId:
       description: "tojid default user"
-      type: "string"
-      required: yes
+      type: "string"      
     keepaliveInterval:
       description: "keep alive interval"
       type: "integer"
