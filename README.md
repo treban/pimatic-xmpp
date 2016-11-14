@@ -19,17 +19,21 @@ For the raspberry pi there are several guides to install an ejabberd service.
 
 ###Installation
 
+**package manager:**
+```
+cd ./pimatic-xmpp
+npm install pimatic-xmpp 
+```
+
+**manually:**
 Extract the plugin content in your pimatic plugin directory:
 ```
 cd <PATH-TO-PIMATIC>/node_modules/
 git clone https://github.com/treban/pimatic-xmpp.git
 ```
-
-###Software dependencies
-
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
 
-After cloning the git repository change in to the plugin directory and install the xmpp-client over the npm packages manager.
+After cloning the git repository change in to the plugin directory and install the xmpp-client over the npm package manager.
 ```
 cd ./pimatic-xmpp
 npm install node-xmpp-client 
@@ -44,6 +48,7 @@ You can load the plugin by adding following in the config.json from your pimatic
       "user": "pimatic-user@server.org",
       "password": "secretpw",
       "adminId": "admin-user@server.org",
+      "defaultId": "default-user@server.org",
       "keepaliveInterval": 5
     }
 
