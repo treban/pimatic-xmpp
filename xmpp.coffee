@@ -186,6 +186,7 @@ module.exports = (env) ->
         match = m.getFullMatch()
 
         assert Array.isArray(tojidTokens)
+        assert String.isNotNull(tojidTokens)
         assert Array.isArray(messageTokens)
 
         return {
