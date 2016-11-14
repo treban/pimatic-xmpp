@@ -1,0 +1,28 @@
+{ "name": "pimatic-xmpp",
+  "description": "Pimatic plugin for xmpp aka jabber support",
+  "author": "Kosta  <trebankosta@gmail.com>",
+  "main": "xmpp",
+  "files": [
+    "xmpp.coffee",
+    "README.md",
+    "xmpp-config-schema.coffee"
+  ],
+  "version": "0.0.1",
+  "homepage": "https://github.com/treban/pimatic-xmpp",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pimatic/pimatic-xmpp.git"
+  },
+  "configSchema": "xmpp-config-schema.coffee",
+  "dependencies": {
+    "node-xmpp-client" : "3.0.4"
+  },
+  "peerDependencies": {
+    "pimatic": "0..*"
+  },
+  "engines": {
+    "node": ">0.8.x",
+    "npm": ">1.1.x"
+  }
+}
