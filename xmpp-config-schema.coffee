@@ -1,7 +1,7 @@
 module.exports = {
   title: "xmpp config options"
   type: "object"
-  required: ["user", "password" , "adminId"]
+  required: ["user", "password" , "adminId", "defaultId"]
   properties:
     user:
       description: "xmpp user name"
