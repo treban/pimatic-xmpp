@@ -13,7 +13,7 @@
   "homepage": "https://github.com/treban/pimatic-xmpp",
   "repository": {
     "type": "git",
-    "url": "git://github.com/pimatic/pimatic-xmpp.git"
+    "url": "git://github.com/treban/pimatic-xmpp.git"
   },
   "configSchema": "xmpp-config-schema.coffee",
   "dependencies": {
