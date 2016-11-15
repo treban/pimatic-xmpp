@@ -19,25 +19,8 @@ For the raspberry pi there are several guides to install an ejabberd service.
 
 ###Installation
 
-**package manager:**
-```
-cd ./pimatic-xmpp
-npm install pimatic-xmpp 
-```
-
-**manually:**
-Extract the plugin content in your pimatic plugin directory:
-```
-cd <PATH-TO-PIMATIC>/node_modules/
-git clone https://github.com/treban/pimatic-xmpp.git
-```
-This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
-
-After cloning the git repository change in to the plugin directory and install the xmpp-client over the npm package manager.
-```
-cd ./pimatic-xmpp
-npm install node-xmpp-client 
-```
+Just activate the plugin in your pimatic config. The plugin manager automatically installs 
+the package with his dependencys. 
 
 ###Configuration
 
@@ -84,3 +67,5 @@ Available events:
 * list devices
 * possibility to interact with devices
 
+
+This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
