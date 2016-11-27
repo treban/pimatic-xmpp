@@ -45,7 +45,7 @@ Only messages from this user will be accepted.
 The messaging system implements a chat bot which answers questions
 and execute actions.
 
-The bot uses the rule action syntax. So all devices are out of the box accessable.
+The bot uses the rule action syntax. So all devices are out of the box accessible.
 
 For example:
 ```
