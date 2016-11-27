@@ -9,7 +9,7 @@
     "LICENSE",
     "xmpp-config-schema.coffee"
   ],
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "GPL-2.0",
   "homepage": "https://github.com/treban/pimatic-xmpp",
   "repository": {
