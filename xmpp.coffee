@@ -7,17 +7,19 @@ module.exports = (env) ->
   util = require "util"
   Client = require 'node-xmpp-client'
   M = env.matcher
+
   xmppService = null
+
   CmdMap = []
 
-
   class XmppPlugin extends env.plugins.Plugin
+
     init: (app, @framework, @config) =>
-      env.logger.debug("Starting xmpp Client")
       user = @config.user
       password = @config.password
       @adminUser = @config.adminId
       @defaultUser = @config.defaultId
+      env.logger.debug ("Starting xmpp Client")
       env.logger.debug ("xmpp: user= #{user}")
 
       xmppService = new Client ({
@@ -31,17 +33,16 @@ module.exports = (env) ->
       xmppService.on 'error', @.error
       xmppService.on 'offline', @.offline
       xmppService.on 'stanza', @.rec
-      @framework.ruleManager.addActionProvider(new XmppActionProvider @framework, @config)
 
-      @framework.ruleManager.addPredicateProvider(new CommandBotPredicateProvider(@framework, @config))
+      @framework.ruleManager.addActionProvider(new XmppActionProvider @framework, @config)
+      @framework.ruleManager.addPredicateProvider(new XmppPredicateProvider(@framework, @config))
 
     online: =>
       env.logger.info ("xmpp Service Online")
       xmppService.connection.socket.setTimeout 0
       xmppService.connection.socket.setKeepAlive true, @config.keepaliveInterval
-      presence = new Client.Stanza 'presence'
-      presence.c('nick', xmlns: 'http://jabber.org/protocol/nick').t('pimatic')
-      xmppService.send presence
+      @setStatus("ready")
+      @setNick("pimatic")
 
     offline: =>
       env.logger.info ("xmpp Service offline")
@@ -50,34 +51,87 @@ module.exports = (env) ->
       env.logger.info ("xmpp Service error")
 
     rec: (stanza) =>
+      env.logger.debug '[xmpp REC]' + stanza
       if stanza.attrs.type is 'error'
         env.logger.error '[xmpp error]' + stanza
+        return
+      from = stanza.attrs.from
+      fromUser=from.split "/",1
+      if fromUser[0] != @adminUser
         return
       switch stanza.name
         when 'message'
           @readMessage stanza
+        when 'presence'
+          @readPresence stanza
+
+    setStatus: (status) =>
+      xmppService.send(new Client.Stanza('presence').
+      c('show').
+      t('chat').
+      c('status').
+      t(status))
+
+    setNick: (nick) =>
+      xmppService.send(new Client.Stanza('presence').
+      c('nick', xmlns: 'http://jabber.org/protocol/nick').
+      t(nick))
+
+    subscribe: (tojid) =>
+      xmppService.send(new Client.Stanza('presence',
+        to: tojid,
+        type: 'subscribe'))
+
+    joinRoom: (room) =>
+      xmppService.send(new Client.Stanza('presence',
+        to: room
+        ).
+        c('x', { xmlns: 'http://jabber.org/protocol/muc' }))
+
+    acceptSubscription: (tojid) =>
+      xmppService.send(new Client.Stanza('presence',
+        to: tojid,
+        type: 'subscribed'))
 
     sendMessage: (tojid, message) =>
-  	  xmppService.send(new Client.Stanza('message',
-            to: tojid,
-            type: 'chat'
-          ).
-          c('body').
-          t(message))
+      xmppService.send(new Client.Stanza('message',
+        to: tojid,
+        type: 'chat'
+        ).
+        c('body').
+        t(message))
+
+    createDummyParseContext = ->
+      variables = {}
+      functions = {}
+      return M.createParseContext(variables, functions)
+
+    readPresence: (stanza) =>
+      from = stanza.attrs.from
+      if(stanza.attrs.type == 'subscribe')
+        @subscribe(@adminUser)
+        @acceptSubscription(@adminUser)
 
     readMessage: (stanza) =>
       body = stanza.getChild 'body'
       from = stanza.attrs.from
-      message = body.getText().toLowerCase()
-      env.logger.debug "Received message: #{message} from #{from}"
-      @fromUser=from.split "/",1
-
-      if  @fromUser[0] == @adminUser
+      fromUser=from.split "/",1
+      if body?
+        message = body.getText().toLowerCase()
+        env.logger.debug "Received message: #{message} from #{fromUser}"
         switch message
-          when 'help'
-            sendstring = 'Built-in commands:\n  help\nAvailable Events:'
+          when "help"
+            sendstring = '\nBuilt-in commands:\n  help\n  list devices\nAvailable Events:'
             for cmdval in CmdMap
               sendstring=sendstring + '\n  ' + cmdval.getCommand()
+            @sendMessage from, sendstring
+            return
+          when "list devices"
+            Devices = @framework.deviceManager.getDevices()
+            DevicesClass = @framework.deviceManager.getDeviceClasses()
+            sendstring = '\nDevices :'
+            for dev in Devices
+              sendstring=sendstring + '\n  Name: ' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name
             @sendMessage from, sendstring
             return
         for cmdval in CmdMap
@@ -85,9 +139,14 @@ module.exports = (env) ->
             cmdval.emit('change', 'event')
             @sendMessage from, "done"
             return
+        for act in @framework.ruleManager.actionProviders
+          context = createDummyParseContext()
+          han = act.parseAction(message,context)
+          if han?
+            han.actionHandler.executeAction()
+            @sendMessage from, "done"
+            return
         @sendMessage from, "Command not found"
-      else
-        @sendMessage from, "What do you want?!"
 
     registerCmd: (@Cmd) =>
       CmdMap.push @Cmd
@@ -97,10 +156,7 @@ module.exports = (env) ->
       CmdMap.splice(CmdMap.indexOf(@Cmd),1)
       env.logger.debug "Deregister command: #{@Cmd.getCommand()}"
 
-  xmpp_connection = new XmppPlugin
-
-  # Provides received message
-  class CommandBotPredicateProvider extends env.predicates.PredicateProvider
+  class XmppPredicateProvider extends env.predicates.PredicateProvider
 
     constructor: (@framework, @config) ->
       super()
@@ -117,6 +173,7 @@ module.exports = (env) ->
       m = M(input, context)
         .match('receiced ')
         .matchString(setCommand)
+
       if m.hadMatch()
         fullMatch = m.getFullMatch()
         nextInput = m.getRemainingInput()
@@ -124,7 +181,7 @@ module.exports = (env) ->
       if fullMatch?
         return {
           token: fullMatch
-          nextInput: input.substring(fullMatch.length) # nextInput
+          nextInput: input.substring(fullMatch.length)
           predicateHandler: new CommandBotPredicateHandler(@framework, CommandToken)
         }
       else return null
@@ -226,5 +283,6 @@ module.exports = (env) ->
 
   module.exports.XmppActionHandler = XmppActionHandler
 
+  xmpp_connection = new XmppPlugin
   # and return it to the framework.
   return xmpp_connection

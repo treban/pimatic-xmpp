@@ -10,7 +10,7 @@ This plugin provides an xmpp aka jabber messaging system for [pimatic](https://p
 
 ###Service dependencies
 
-The plugin needs a valid user account on any xmpp service. 
+The plugin needs a valid user account on any xmpp service.
 
 * You can use a public jabber/xmpp service
 * or install a local service on your pimatic server like ejabberd
@@ -19,12 +19,12 @@ For the raspberry pi there are several guides to install an ejabberd service.
 
 ###Installation
 
-Just activate the plugin in your pimatic config. The plugin manager automatically installs 
-the package with his dependencys. 
+Just activate the plugin in your pimatic config. The plugin manager automatically installs
+the package with his dependencys.
 
 ###Configuration
 
-You can load the plugin by adding following in the config.json from your pimatic server: 
+You can load the plugin by adding following in the config.json from your pimatic server:
 
     {
       "plugin": "xmpp",
@@ -37,13 +37,38 @@ You can load the plugin by adding following in the config.json from your pimatic
 
 The config item adminId is the access controle for receiving messages.
 
-Only messages from this user will be accepted. 
- 
+Only messages from this user will be accepted.
+
 ###Usages
-####Provided predicates
-The messaging system provides a **_received_** event. 
+####Chat client
+
+The messaging system implements a chat bot which answers questions
+and execute actions.
+
+The bot uses the rule action syntax. So all devices are out of the box accessable.
+
+For example:
 ```
-received "do action" 
+toggle device1
+switch device2 on
+set temp of heating to 28
+```
+
+
+Following commands are predefiend:
+
+Built-in commands:
+* help
+* list devices
+
+Available events:
+* "created predicates in rules"
+
+
+####Provided predicates
+The messaging system provides a **_received_** event.
+```
+received "do action"
 ```
 
 ####Provided actions
@@ -52,20 +77,21 @@ The messaging system provides a **_send_** event.
 send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
 ```
 
-####Chat client
-
-The messaging system implements a chat bot which answers questions. 
-Following commands are predefiend:
-
-Built-in commands:
-* help
-
-Available events: 
-* "created predicates"
-
 ###ToDoList
-* list devices
-* possibility to interact with devices
+* chatrooms for multiuser enviroments (password protected)
+* xmpp device for xmpp user status
+* built-in server ? for easy use of plugin
 
+
+###ChangeLog
+* 0.0.3
+  First public Version
+  Use xmpp system over the rule section: predicates and action handler
+
+* 0.0.4
+  - Full integrated command parser for all available pimatic actions
+  - list all devices
+  - xmpp core improvments; subscribe to admin user 
+  - some bug fixes   
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
