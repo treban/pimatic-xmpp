@@ -51,7 +51,6 @@ module.exports = (env) ->
       env.logger.info ("xmpp Service error")
 
     rec: (stanza) =>
-      env.logger.debug '[xmpp REC]' + stanza
       if stanza.attrs.type is 'error'
         env.logger.error '[xmpp error]' + stanza
         return
@@ -265,7 +264,6 @@ module.exports = (env) ->
         if simulate
           return __("would push message \"%s\" to tojid \"%s\"", message, tojid)
         else
-          env.logger.debug "xmpp debug: send"
           msg = {
               message: message
               tojid: tojid
