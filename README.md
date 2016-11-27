@@ -91,7 +91,7 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
 * 0.0.4
   - Full integrated command parser for all available pimatic actions
   - list all devices
-  - xmpp core improvments; subscribe to admin user 
+  - xmpp core improvements; subscribe to admin user 
   - some bug fixes   
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
