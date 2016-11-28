@@ -85,7 +85,7 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
 
 ###ChangeLog
 * 0.0.3
-  First public Version
+  First public version.
   Use xmpp system over the rule section: predicates and action handler
 
 * 0.0.4
