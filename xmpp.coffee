@@ -74,7 +74,7 @@ module.exports = (env) ->
       for jid in jidBook
         if jid.getJid() in fromUser
           flag = 1
-      if fromUser[0] in @adminUser or fromUser[0] in @user or flag == 1
+      if fromUser[0] == @adminUser or fromUser[0] == @user or flag == 1
         switch stanza.name
           when 'message'
             @readMessage stanza
