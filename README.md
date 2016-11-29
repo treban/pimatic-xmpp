@@ -32,6 +32,7 @@ You can load the plugin by adding following in the config.json from your pimatic
       "password": "secretpw",
       "adminId": "admin-user@server.org",
       "defaultId": "default-user@server.org",
+      "nickId": "pimatic"
       "keepaliveInterval": 5
     }
 
@@ -52,6 +53,9 @@ For example:
 toggle device1
 switch device2 on
 set temp of heating to 28
+list devices
+get device heating
+get all devices
 ```
 
 
@@ -99,7 +103,7 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
   - code cleanup
   - autoreconnect
   - new Device: xmppUser as presence device
-  - gett commands for devices
+  - get commands for devices
   - security fixes
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
