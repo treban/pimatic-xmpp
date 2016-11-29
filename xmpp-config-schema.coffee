@@ -19,6 +19,10 @@ module.exports = {
       description: "tojid default user"
       type: "string"
       required: yes
+    nickId:
+      description: "nick name for pimatic"
+      type: "string"
+      default: "pimatic"
     keepaliveInterval:
       description: "keep alive interval"
       type: "integer"

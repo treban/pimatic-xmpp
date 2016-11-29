@@ -8,24 +8,36 @@ module.exports = (env) ->
   Client = require 'node-xmpp-client'
   M = env.matcher
 
-  xmppService = null
-
-  CmdMap = []
-
   class XmppPlugin extends env.plugins.Plugin
 
+    xmppService = null
+    CmdMap = []
+    jidBook = []
+    rosterBook = []
+
     init: (app, @framework, @config) =>
-      user = @config.user
+      @user = @config.user
       password = @config.password
       @adminUser = @config.adminId
       @defaultUser = @config.defaultId
+      @nickId = @config.nickId
+    #  @roomName = @config.roomName
+    #  @roomPassword = @config.roomPassword
+
       env.logger.debug ("Starting xmpp Client")
-      env.logger.debug ("xmpp: user= #{user}")
+      env.logger.debug ("xmpp: user= #{@user}")
+      deviceConfigDef = require("./xmpp-device-schema")
 
       xmppService = new Client ({
-        jid: user,
+        jid: @user,
         password: password,
+        reconnect: true,
         onerror: (message) => env.logger.error("xmpp error: #{message}")
+      })
+
+      @framework.deviceManager.registerDeviceClass("XmppPresence", {
+        configDef: deviceConfigDef.XmppPresence,
+        createCallback: (config) => new XmppPresence(config)
       })
 
       xmppService.connection.socket.on 'error' , @error
@@ -42,7 +54,8 @@ module.exports = (env) ->
       xmppService.connection.socket.setTimeout 0
       xmppService.connection.socket.setKeepAlive true, @config.keepaliveInterval
       @setStatus("ready")
-      @setNick("pimatic")
+      @setNick(@nickId)
+      @getRoster()
 
     offline: =>
       env.logger.info ("xmpp Service offline")
@@ -51,25 +64,29 @@ module.exports = (env) ->
       env.logger.info ("xmpp Service error")
 
     rec: (stanza) =>
+    #  env.logger.debug '[xmpp recieved]' + stanza
       if stanza.attrs.type is 'error'
         env.logger.error '[xmpp error]' + stanza
         return
       from = stanza.attrs.from
       fromUser=from.split "/",1
-      if fromUser[0] != @adminUser
-        return
-      switch stanza.name
-        when 'message'
-          @readMessage stanza
-        when 'presence'
-          @readPresence stanza
+      flag = 0
+      for jid in jidBook
+        if jid.getJid() in fromUser
+          flag = 1
+      if fromUser[0] in @adminUser or fromUser[0] in @user or flag == 1
+        switch stanza.name
+          when 'message'
+            @readMessage stanza
+          when 'presence'
+            @readPresence stanza
+          when 'iq'
+            @readIq stanza
 
     setStatus: (status) =>
       xmppService.send(new Client.Stanza('presence').
-      c('show').
-      t('chat').
-      c('status').
-      t(status))
+      c('show').t('chat').
+      c('status').t(status))
 
     setNick: (nick) =>
       xmppService.send(new Client.Stanza('presence').
@@ -83,9 +100,9 @@ module.exports = (env) ->
 
     joinRoom: (room) =>
       xmppService.send(new Client.Stanza('presence',
-        to: room
-        ).
-        c('x', { xmlns: 'http://jabber.org/protocol/muc' }))
+        to: room ).
+        c('x', { xmlns: 'http://jabber.org/protocol/muc' }).
+        c('password').t(password))
 
     acceptSubscription: (tojid) =>
       xmppService.send(new Client.Stanza('presence',
@@ -95,10 +112,15 @@ module.exports = (env) ->
     sendMessage: (tojid, message) =>
       xmppService.send(new Client.Stanza('message',
         to: tojid,
-        type: 'chat'
-        ).
+        type: 'chat').
         c('body').
         t(message))
+
+    getRoster: () =>
+      xmppService.send(new Client.Stanza('iq',
+        id: 'roster_1',
+        type: 'get').
+        c('query', { xmlns: 'jabber:iq:roster' }))
 
     createDummyParseContext = ->
       variables = {}
@@ -107,9 +129,25 @@ module.exports = (env) ->
 
     readPresence: (stanza) =>
       from = stanza.attrs.from
+      fromUser=from.split "/",1
       if(stanza.attrs.type == 'subscribe')
         @subscribe(@adminUser)
         @acceptSubscription(@adminUser)
+        return
+      if(fromUser == @user)
+        return
+      if(stanza.attrs.type == 'unavailable')
+        for jid in jidBook
+          if jid.getJid() in fromUser
+            jid._setPresence(false)
+        return
+      for jid in jidBook
+        if  jid.getJid() in fromUser
+          jid._setPresence(true)
+
+    readIq: (stanza) =>
+      if stanza.attrs.type == 'result' and stanza.attrs.id == 'roster_1'
+        rosterBook.push new XmppUser(stanza.getChild('query', 'jabber:iq:roster').getChild('item').attrs.jid)
 
     readMessage: (stanza) =>
       body = stanza.getChild 'body'
@@ -118,21 +156,44 @@ module.exports = (env) ->
       if body?
         message = body.getText().toLowerCase()
         env.logger.debug "Received message: #{message} from #{fromUser}"
-        switch message
-          when "help"
-            sendstring = '\nBuilt-in commands:\n  help\n  list devices\nAvailable Events:'
+        switch
+          when /^help$/.test(message)
+            sendstring = '\nBuilt-in commands:\n  help\n  list devices\n  get all devices\n  get device *** (by name or id)\n Available actions:'
             for cmdval in CmdMap
               sendstring=sendstring + '\n  ' + cmdval.getCommand()
             @sendMessage from, sendstring
             return
-          when "list devices"
+          when /^list devices$/.test(message)
             Devices = @framework.deviceManager.getDevices()
             DevicesClass = @framework.deviceManager.getDeviceClasses()
             sendstring = '\nDevices :'
             for dev in Devices
-              sendstring=sendstring + '\n  Name: ' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name
+              sendstring = sendstring + '\nName: ' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name + ""
             @sendMessage from, sendstring
             return
+          when /^get all devices$/.test(message)
+            Devices = @framework.deviceManager.getDevices()
+            sendstring = '\nDevices :'
+            for dev in Devices
+              sendstring = sendstring + '\n-------------------\nName: ' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name
+              for name of dev.attributes
+                sendstring=sendstring + '\n\t' + name + " " + dev.getLastAttributeValue(name) + ""
+            @sendMessage from, sendstring
+            return
+          when /^get device [\w.-]+/.test(message)
+            obj=message.split "device",4
+            Devices = @framework.deviceManager.getDevices()
+            for dev in Devices
+              if ( obj[1].substring(1) == dev.id ) or ( obj[1].substring(1) == dev.name )
+                sendstring = '\n*Name: *>' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name
+                for name of dev.attributes
+                  sendstring=sendstring + '\n\t' + name + " " + dev.getLastAttributeValue(name) + ""
+                @sendMessage from, sendstring
+                return
+            @sendMessage from, "device not found"
+            return
+        if /execute/i.test(message) # Prevent to run a shell execute (for security reasons!)
+          return
         for cmdval in CmdMap
           if cmdval.getCommand().toLowerCase() == message
             cmdval.emit('change', 'event')
@@ -155,19 +216,25 @@ module.exports = (env) ->
       CmdMap.splice(CmdMap.indexOf(@Cmd),1)
       env.logger.debug "Deregister command: #{@Cmd.getCommand()}"
 
+    registerPresence: (@user) =>
+      env.logger.debug "Register Presence of: #{@user.jid}"
+      jidBook.push @user
+
+    deregisterPresence: (@user) =>
+      jidBook.splice(jidBook.indexOf(@user),1)
+      env.logger.debug "Deregister command: #{@user.jid}"
+
   class XmppPredicateProvider extends env.predicates.PredicateProvider
 
     constructor: (@framework, @config) ->
       super()
 
     parsePredicate: (input, context) ->
-      exprTokens = null
       fullMatch = null
       nextInput = null
-      matchingUnit = null
-      CommandToken = null
+      recCommand = null
 
-      setCommand = (m, tokens) => CommandToken = tokens
+      setCommand = (m, tokens) => recCommand = tokens
 
       m = M(input, context)
         .match('receiced ')
@@ -178,24 +245,20 @@ module.exports = (env) ->
         nextInput = m.getRemainingInput()
 
       if fullMatch?
+        assert typeof recCommand is "string"
         return {
           token: fullMatch
           nextInput: input.substring(fullMatch.length)
-          predicateHandler: new CommandBotPredicateHandler(@framework, CommandToken)
+          predicateHandler: new XmppPredicateHandler(@framework, recCommand)
         }
       else return null
 
-
-  class CommandBotPredicateHandler extends env.predicates.PredicateHandler
+  class XmppPredicateHandler extends env.predicates.PredicateHandler
     constructor: (framework, @Command) ->
       super()
-      @_variableManager = framework.variableManager
 
     setup: ->
-      @_variableManager.notifyOnChange(@Command, @expChangeListener = () =>
-        @_lastTime = null
-      )
-      xmpp_connection.registerCmd this
+      xmpp_messageBot.registerCmd this
       super()
 
     getValue: -> Promise.resolve false
@@ -203,11 +266,7 @@ module.exports = (env) ->
     getCommand: -> "#{@Command}"
 
     destroy: ->
-      xmpp_connection.deregisterCmd this
-      if @expChangeListener?
-        @_variableManager.cancelNotifyOnChange(@expChangeListener)
-        @expChangeListener = null
-      @destroyed = yes
+      xmpp_messageBot.deregisterCmd this
       super()
 
   class XmppActionProvider extends env.actions.ActionProvider
@@ -240,10 +299,8 @@ module.exports = (env) ->
 
       if m.hadMatch()
         match = m.getFullMatch()
-
         assert Array.isArray(tojidTokens)
         assert Array.isArray(messageTokens)
-
         return {
           token: match
           nextInput: input.substring(match.length)
@@ -251,6 +308,8 @@ module.exports = (env) ->
             @framework, tojidTokens, messageTokens
           )
         }
+      else
+        return null
 
   class XmppActionHandler extends env.actions.ActionHandler
 
@@ -264,23 +323,46 @@ module.exports = (env) ->
         if simulate
           return __("would push message \"%s\" to tojid \"%s\"", message, tojid)
         else
-          msg = {
-              message: message
-              tojid: tojid
-          }
-          stanza = new Client.Stanza('message',
-              to: tojid,
-              type: 'chat'
-            ).
-            c('body').
-            t(message)
-          xmppService.send(stanza)
+          xmpp_messageBot.sendMessage(tojid,message)
           return Promise.resolve(__("xmpp message sent successfully"))
-
       )
+
+  class XmppPresence extends env.devices.PresenceSensor
+    constructor: (@config, deviceNum) ->
+      @name = @config.name
+      @id = @config.id
+      @jid = @config.jid
+      @_presence = lastState?.presence?.value or false
+      @count = 0
+      xmpp_messageBot.registerPresence this
+      super()
+
+    getJid: ->
+      return @jid
+
+    destroy: ->
+      xmpp_messageBot.deregisterPresence this
+      super()
+
+  class XmppUser
+
+    @callback = null
+
+    constructor: (@jid) ->
+      @state = false
+
+    getJid: =>
+      return @jid
+
+    getState: =>
+      return @state
+
+    setState: (newstate) =>
+      if @state is newstate then return
+      @state = newstate
 
   module.exports.XmppActionHandler = XmppActionHandler
 
-  xmpp_connection = new XmppPlugin
+  xmpp_messageBot = new XmppPlugin
   # and return it to the framework.
-  return xmpp_connection
+  return xmpp_messageBot

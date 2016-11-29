@@ -60,8 +60,10 @@ Following commands are predefiend:
 Built-in commands:
 * help
 * list devices
+* get all devices
+* get device **name or id**
 
-Available events:
+Available actions:
 * "created predicates in rules"
 
 
@@ -91,7 +93,13 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
 * 0.0.4
   - Full integrated command parser for all available pimatic actions
   - list all devices
-  - xmpp core improvements; subscribe to admin user 
-  - some bug fixes   
+  - xmpp core improvements; subscribe to admin user
+  - some bug fixes  
+* 0.0.5
+  - code cleanup
+  - autoreconnect
+  - new Device: xmppUser as presence device
+  - gett commands for devices
+  - security fixes
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
