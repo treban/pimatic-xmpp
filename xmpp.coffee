@@ -184,8 +184,8 @@ module.exports = (env) ->
             obj=message.split "device",4
             Devices = @framework.deviceManager.getDevices()
             for dev in Devices
-              if ( obj[1].substring(1) == dev.id ) or ( obj[1].substring(1) == dev.name )
-                sendstring = '\n*Name: *>' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name
+              if ( obj[1].substring(1) == dev.id.toLowerCase() ) or ( obj[1].substring(1) == dev.name.toLowerCase() )
+                sendstring = '\nName: ' + dev.name + " \tID: " + dev.id + " \t Type: " +  dev.constructor.name
                 for name of dev.attributes
                   sendstring=sendstring + '\n\t' + name + " " + dev.getLastAttributeValue(name) + ""
                 @sendMessage from, sendstring
