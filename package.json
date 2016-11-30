@@ -7,7 +7,8 @@
     "xmpp.coffee",
     "README.md",
     "LICENSE",
-    "xmpp-config-schema.coffee"
+    "xmpp-config-schema.coffee",
+    "xmpp-device-schema.coffee"
   ],
   "version": "0.0.5",
   "license": "GPL-2.0",
