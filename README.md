@@ -4,11 +4,11 @@ pimatic-xmpp
 > **beta stadium !**
 
 This plugin provides an xmpp aka jabber messaging system for [pimatic](https://pimatic.org/).
-####Features
+#### Features
 * Send messages to users
 * Reveive commands from users
 
-###Service dependencies
+### Service dependencies
 
 The plugin needs a valid user account on any xmpp service.
 
@@ -17,12 +17,12 @@ The plugin needs a valid user account on any xmpp service.
 
 For the raspberry pi there are several guides to install an ejabberd service.
 
-###Installation
+### Installation
 
 Just activate the plugin in your pimatic config. The plugin manager automatically installs
 the package with his dependencys.
 
-###Configuration
+### Configuration
 
 You can load the plugin by adding following in the config.json from your pimatic server:
 
@@ -40,8 +40,8 @@ The config item adminId is the access controle for receiving messages.
 
 Only messages from this user will be accepted.
 
-###Usages
-####Chat client
+### Usages
+#### Chat client
 
 The messaging system implements a chat bot which answers questions
 and execute actions.
@@ -71,25 +71,24 @@ Available actions:
 * "created predicates in rules"
 
 
-####Provided predicates
+#### Provided predicates
 The messaging system provides a **_received_** event.
 ```
 received "do action"
 ```
 
-####Provided actions
+#### Provided actions
 The messaging system provides a **_send_** event.
 ```
 send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
 ```
 
-###ToDoList
+### ToDoList
 * chatrooms for multiuser enviroments (password protected)
-* xmpp device for xmpp user status
 * built-in server ? for easy use of plugin
 
 
-###ChangeLog
+### ChangeLog
 * 0.0.3
   First public version.
   Use xmpp system over the rule section: predicates and action handler
@@ -105,5 +104,7 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
   - new Device: xmppUser as presence device
   - get commands for devices
   - security fixes
+* 0.0.6 BUGFIX
+* 0.0.7 BUGFIX
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
