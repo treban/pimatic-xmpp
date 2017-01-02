@@ -64,7 +64,7 @@ module.exports = (env) ->
       env.logger.info ("xmpp Service error")
 
     rec: (stanza) =>
-    #  env.logger.debug '[xmpp recieved]' + stanza
+      env.logger.debug '[xmpp recieved message:]' + stanza
       if stanza.attrs.type is 'error'
         env.logger.error '[xmpp error]' + stanza
         return
@@ -146,8 +146,8 @@ module.exports = (env) ->
           jid._setPresence(true)
 
     readIq: (stanza) =>
-      if stanza.attrs.type == 'result' and stanza.attrs.id == 'roster_1'
-        rosterBook.push new XmppUser(stanza.getChild('query', 'jabber:iq:roster').getChild('item').attrs.jid)
+      #if stanza.attrs.type == 'result' and stanza.attrs.id == 'roster_1'
+        #rosterBook.push new XmppUser(stanza.getChild('query', 'jabber:iq:roster').getChild('item').attrs?.jid?)
 
     readMessage: (stanza) =>
       body = stanza.getChild 'body'
