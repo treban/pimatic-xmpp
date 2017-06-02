@@ -106,5 +106,6 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
   - security fixes
 * 0.0.6 BUGFIX
 * 0.0.7 BUGFIX
+* 0.0.8 BUGFIX
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
