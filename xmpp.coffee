@@ -69,7 +69,8 @@ module.exports = (env) ->
         env.logger.error '[xmpp error]' + stanza
         return
       from = stanza.attrs.from
-      fromUser=from.split "/",1
+      fromUser=""
+      fromUser=from?.split "/",1
       flag = 0
       for jid in jidBook
         if jid.getJid() in fromUser
