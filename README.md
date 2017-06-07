@@ -1,8 +1,6 @@
 pimatic-xmpp
 =======================
 
-> **beta stadium !**
-
 This plugin provides an xmpp aka jabber messaging system for [pimatic](https://pimatic.org/).
 #### Features
 * Send messages to users
@@ -104,9 +102,10 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
   - new Device: xmppUser as presence device
   - get commands for devices
   - security fixes
-* 0.0.6 BUGFIX
-* 0.0.7 BUGFIX
-* 0.0.8 BUGFIX
-* 0.0.9 BUGFIX
+* 0.0.6  BUGFIX
+* 0.0.7  BUGFIX
+* 0.0.8  BUGFIX
+* 0.0.9  BUGFIX
+* 0.0.10 BUGFIX
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
