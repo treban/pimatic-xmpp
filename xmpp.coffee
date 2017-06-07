@@ -70,8 +70,10 @@ module.exports = (env) ->
         return
       from = stanza.attrs.from
       fromUser=[]
-      fromUser[0]=""
-      fromUser=from?.split "/",1
+      if (typeof from != "undefined" && from != null)
+        fromUser=from?.split "/",1
+      else
+        fromUser[0]="NOUSER"
       flag = 0
       for jid in jidBook
         if jid.getJid() in fromUser
