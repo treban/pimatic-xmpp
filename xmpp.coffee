@@ -21,6 +21,7 @@ module.exports = (env) ->
       @adminUser = @config.adminId
       @defaultUser = @config.defaultId
       @nickId = @config.nickId
+      @disableremotecontrol = @config.disableRemoteControl ? false
     #  @roomName = @config.roomName
     #  @roomPassword = @config.roomPassword
 
@@ -160,6 +161,9 @@ module.exports = (env) ->
       if body?
         message = body.getText().toLowerCase()
         env.logger.debug "Received message: #{message} from #{fromUser}"
+        if (@disableremotecontrol)
+          @sendMessage from, "Remote control is disabled!"
+          return
         switch
           when /^help$/.test(message)
             sendstring = '\nBuilt-in commands:\n  help\n  list devices\n  get all devices\n  get device *** (by name or id)\n Available actions:'
@@ -241,7 +245,7 @@ module.exports = (env) ->
       setCommand = (m, tokens) => recCommand = tokens
 
       m = M(input, context)
-        .match('receiced ')
+        .match('received ')
         .matchString(setCommand)
 
       if m.hadMatch()

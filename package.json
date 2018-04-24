@@ -1,7 +1,7 @@
 {
   "name": "pimatic-xmpp",
   "description": "Pimatic plugin for xmpp aka jabber support",
-  "author": "Kosta  <trebankosta@gmail.com>",
+  "author": "Kosta <trebankosta@gmail.com>",
   "main": "xmpp",
   "files": [
     "xmpp.coffee",

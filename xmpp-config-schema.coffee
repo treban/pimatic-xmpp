@@ -27,6 +27,10 @@ module.exports = {
       description: "keep alive interval"
       type: "integer"
       default: 5
+    disableRemoteControl:
+      description: "disable remote control"
+      type: "boolean"
+      default: false
     debug:
       description: "Enabled debug messages"
       type: "boolean"
