@@ -107,5 +107,8 @@ send chat tojid:"admin-user@server.org" message:"triggerd event has occurred"
 * 0.0.8  BUGFIX
 * 0.0.9  BUGFIX
 * 0.0.10 BUGFIX
+* 0.0.11
+  - disable remote control in config
+  - BUGFIX
 
 This plugin depends on [node-xmpp-client](https://github.com/node-xmpp/node-xmpp/tree/master/packages/node-xmpp-client).
